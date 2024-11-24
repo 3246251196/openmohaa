@@ -1,0 +1,56 @@
+#!/bin/bash --
+
+set -x
+set -o pipefail
+
+if [[ "${1}" = "clean" ]] ; then
+    rm -rf .cmake
+    exit $?
+fi
+
+readonly BASE_COMPILER_DIR=/home/rjd/projects/ppc-amigaos-gcc6/
+#readonly LOAD_THREAD_NATIVE="-DCMAKE_CXX_FLAGS=\"-DRJD_LOAD_THREAD_NATIVE\""
+
+clib=${1}
+if [ -z $clib ] ; then
+    clib=clib4
+fi
+mkdir -p .cmake
+cd .cmake
+# Assumes that you have the toolchain file there!
+cmake --toolchain cmake.ppc-amigaos $LOAD_THREAD_NATIVE -DC_LIB=$clib -DNO_OPENAL=TRUE ..  || { echo "Error building AMIGAOS" 1>&2 && exit 1 ; }
+
+    { VERBOSE=1 make -j$(nproc) -O 2>&1 | tee ../rjdAmigaOS4Build.log ; } || { echo "Error building AMIGAOS" 1>&2 && exit 1 ; }
+    mkdir -p release || { echo "Error building AMIGAOS" 1>&2 && exit 1 ; }
+    cp omohaadedppc openmohaappc code/server/fgame/gameppc.so code/client/cgame/cgameppc.so release || { echo "Error building AMIGAOS" 1>&2 && exit 1 ; }
+    for lib in $(readelf -d release/gameppc.so | sed -n  's/.*Shared library: \[\(.*\)\]/\1/p') ; do
+	if [ $clib = clib4 ] ; then
+	    cp "$(find $BASE_COMPILER_DIR -type f -name "$lib" | grep clib4)" release
+	else
+	    # newlib newlib does not put things in a "newlib" directory
+	    # - as per multilib compiling/ configuration.  Thus,
+	    # anything that is not clib2 or clib4 is newlib - UNLESS
+	    # they are in local/newlib, but even then, that should still
+	    # work
+	    cp "$(find $BASE_COMPILER_DIR -type f -name "$lib" | grep -v "clib4\|clib2")" release
+	fi
+    done
+    if [ $clib = clib4 ] ; then
+	cp $BASE_COMPILER_DIR/ppc-amigaos/SDK/clib4/clib4.library release/
+    fi
+
+    if [ -n "${LOAD_THREAD_NATIVE}" ] ; then
+	cp $BASE_COMPILER_DIR/libgthr-amigaos-native.so.$clib release/libgthr-amigaos-native.so || echo 1>&2 "Could not find \"gthr-amigaos-native.so.$clib\""
+    fi
+    ls -l release || { echo "Error building AMIGAOS" 1>&2 && exit 1 ; }
+
+if [ "${1}" = linux -o "${2}" = linux ]
+then
+    if [ "${1}" = clean -o "${2}" = clean ]
+    then
+	cd ../.cmake2 && make clean
+	exit 0
+    else
+	{ mkdir -p ../.cmake2 && cd ../.cmake2 && cmake .. && make -j$(nproc) && cp /home/rjd/projects/SVN_AMIGA/openmohaa/.cmake2/openmohaax86_64 /home/rjd/Games/MOHAA/ ; } || { echo "Error building LINUX" 1>&2 && exit 1 ; }
+    fi
+fi

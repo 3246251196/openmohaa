@@ -6,6 +6,9 @@
 
 #include "gsPlatform.h"
 
+#ifdef __amigaos4__
+#include <pthread.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +27,7 @@ extern "C" {
 #elif defined(_PS2)
 	typedef int GSIThreadID;
 	typedef int GSISemaphoreID;
-	typedef struct 
+	typedef struct
 	{
 		// A critical section is a re-entrant semaphore
 		GSISemaphoreID mSemaphore;
@@ -64,7 +67,7 @@ extern "C" {
 	#define GSI_NO_THREADS
 	typedef int GSIThreadID;
 	typedef int GSISemaphoreID;
-	typedef struct 
+	typedef struct
 	{
 		// A critical section is a re-entrant semaphore
 		GSISemaphoreID mSemaphore;
@@ -79,7 +82,7 @@ extern "C" {
 	#define GSI_NO_THREADS
 	typedef int GSIThreadID;
 	typedef int GSISemaphoreID;
-	typedef struct 
+	typedef struct
 	{
 		// A critical section is a re-entrant semaphore
 		GSISemaphoreID mSemaphore;
@@ -97,7 +100,7 @@ extern "C" {
 		gsi_i32 mValue;
 		gsi_i32 mMax;
 	} GSISemaphoreID;
-	typedef struct  
+	typedef struct
 	{
 		pthread_t thread;
 		pthread_attr_t attr;
@@ -135,7 +138,7 @@ extern "C" {
 		gsi_u32 gsiInterlockedIncrement(gsi_u32* num);
 		gsi_u32 gsiInterlockedDecrement(gsi_u32* num);
 	#endif
-	
+
 #else
 	// Don't worry about concurrancy when GSI_NO_THREADS is defined
 	#define gsiInterlockedIncrement(a) (++(*a))
@@ -187,7 +190,7 @@ extern "C" {
     #define gsiCloseSemaphore(a)
 
 #endif // GSI_NO_THREADS
-	
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef __cplusplus

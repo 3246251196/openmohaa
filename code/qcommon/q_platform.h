@@ -106,7 +106,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ID_INLINE __inline
 #define PATH_SEP '\\'
 
-#if defined(_WIN64) || defined( __WIN64__ ) 
+#if defined(_WIN64) || defined( __WIN64__ )
 #if defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || defined(_M_X64)
 #  define ARCH_STRING "x86_64"
 #elif defined(__aarch64__) || defined(__ARM64__) || defined (_M_ARM64)
@@ -237,14 +237,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #  endif
 #endif
 
-#if __BIG_ENDIAN__
-#  define Q3_BIG_ENDIAN
+#ifdef __amigaos4__
+#define Q3_BIG_ENDIAN
 #else
-#  define Q3_LITTLE_ENDIAN
+#if __BIG_ENDIAN__
+#define Q3_BIG_ENDIAN
+#else
+#define Q3_LITTLE_ENDIAN
 #endif
+#endif /* __amigaos4__ */
 
 #define DLL_EXT ".so"
-
 #endif
 
 //============================================================== MAC OS X ===

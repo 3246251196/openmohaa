@@ -341,7 +341,11 @@ char *CON_Input( void )
 
 	if(ttycon_on)
 	{
+#ifndef __amigaos4__
 		avail = read(STDIN_FILENO, &key, 1);
+#else /* RJD: TODO - find out why "read()" is hanging on the Amiga! This current hack will nullify the effects of this method */
+		avail = -1;
+#endif
 		if (avail != -1)
 		{
 			// we have something

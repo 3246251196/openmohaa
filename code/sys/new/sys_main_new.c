@@ -177,6 +177,13 @@ void Sys_UnloadGame(void)
 Sys_GetGameAPI
 =================
 */
+#ifdef __amigaos4__
+#ifdef RJD_LOAD_THREAD_NATIVE
+#include <dlfcn.h>
+#include <proto/elf.h>
+#endif
+#endif
+
 void* Sys_GetGameAPI(void* parms)
 {
     void* (*GetGameAPI) (void*);
@@ -185,6 +192,33 @@ void* Sys_GetGameAPI(void* parms)
     if (game_library)
         Com_Error(ERR_FATAL, "Sys_GetGameAPI without calling Sys_UnloadGame");
 
+#ifdef __amigaos4__
+#ifdef RJD_LOAD_THREAD_NATIVE
+#ifdef __NEWLIB
+#define BINDING RTLD_LAZY /* this is the only available for newlib */
+#else
+#define BINDING RTLD_NOW
+#endif
+    {
+      void *p = dlopen( "libgthr-amigaos-native.so", BINDING|RTLD_GLOBAL);
+      if (!p)
+	{
+	  Com_Error(ERR_FATAL, "Couldn't load \"libgthr-amigaos-native.so\" "
+		  "which is needed for AMIGAOS4");
+	  return NULL;
+	}
+      else
+	{
+	  /* Assuming that we are linking with athread=native;
+	     hopefully, all of the symbols are not available for
+	     subsequent undefs for things like __gthread_active_p,
+	     etc */
+	  Com_Printf("Loaded \"libgthr-amigaos-native.so\"\n");
+	  /* TODO : Find a good place to dlclose()! */
+	}
+    }
+#endif
+#endif
     game_library = Sys_LoadDll(gamename, qfalse);
 
     //Still couldn't find it.

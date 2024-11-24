@@ -47,6 +47,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+
+#ifdef __amigaos4__
+const char stack[] __attribute__((used)) = "$STACK: 4194304";
+#endif
+
+
 static char binaryPath[ MAX_OSPATH ] = { 0 };
 static char installPath[ MAX_OSPATH ] = { 0 };
 
@@ -519,7 +525,7 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 		Com_Printf("Trying to load \"%s\"...\n", name);
 		dllhandle = Sys_LoadLibrary(name);
 	}
-	
+
 	if(!dllhandle)
 	{
 		const char *topDir;
@@ -545,10 +551,10 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 		if(!dllhandle)
 		{
 			const char *basePath = Cvar_VariableString("fs_basepath");
-			
+
 			if(!basePath || !*basePath)
 				basePath = ".";
-			
+
 			if(FS_FilenameCompare(topDir, basePath))
 			{
 				len = Com_sprintf(libPath, sizeof(libPath), "%s%c%s", basePath, PATH_SEP, name);
@@ -562,12 +568,12 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 					Com_Printf("Skipping trying to load \"%s\" from \"%s\", file name is too long.\n", name, basePath);
 				}
 			}
-			
+
 			if(!dllhandle)
 				Com_Printf("Loading \"%s\" failed\n", name);
 		}
 	}
-	
+
 	return dllhandle;
 }
 
@@ -875,4 +881,3 @@ int main( int argc, char **argv )
 
 	return 0;
 }
-

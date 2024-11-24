@@ -31,14 +31,14 @@ extern "C"
 //////////////////////////
 // Bounds checking
 //
-//   #define DISABLE_BOUNDS to disable checking a compiler 
+//   #define DISABLE_BOUNDS to disable checking a compiler
 //   warning will happen if checking is enabled
 //
 //   #define BOUNDS_ENDOFPAGE to check for overflowed, don't
 //   define it to check for underflows
 //
 //   functions:
-//     void *b_malloc ( unsigned ); 
+//     void *b_malloc ( unsigned );
 //       Does a bounds-malloc, or just a normal one if checking's
 //       disabled
 //     void  b_free ( void * );
@@ -65,7 +65,9 @@ extern "C"
 #ifdef DISABLE_BOUNDS
 
 #include <malloc.h>
-
+#ifdef __amigaos4
+#include <stdlib.h>
+#endif
 void* b_malloc(unsigned int size)
 {
 	return malloc(size);

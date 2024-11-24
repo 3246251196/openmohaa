@@ -48,6 +48,15 @@ else()
 	list(FILTER SOURCES_CLIENT EXCLUDE REGEX "./snd_([a-zA-Z0-9_]+)\.cpp$")
 	file(GLOB_RECURSE SOURCES_CLIENT_SND "./new/*.c*")
 	list(APPEND SOURCES_CLIENT ${SOURCES_CLIENT_SND})
+
+	if(AMIGAOS4)
+	  # As of version 7a0a671f183463b95549949fd06a36b81b57be50 (my r615), it
+	  # seems that the SDL sound file is missing. I will add it here
+
+	  # TODO: Remove this hack
+	  file(GLOB_RECURSE SOURCES_CLIENT_SND "../sdl/*snd*.c")
+	  list(APPEND SOURCES_CLIENT ${SOURCES_CLIENT_SND})
+	endif()
 endif()
 
 set(OLD_VALUE ${BUILD_SHARED_LIBS})

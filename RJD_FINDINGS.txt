@@ -1,0 +1,30 @@
+==
+.1
+===
+Sys_ErrorDialog():
+contains 	if(!Sys_Mkdir(homepath))
+
+but, mkdir MIGHT NOT succeed if it already exists - so why does this code exist and assume it does not!?
+
+===
+.2 sizeof(unsigned long) is not the same onl amiga, it is 4 bytes, not 8
+===
+
+65K Stack Size is TOO small and leads to memory issue: R_CreateBuiltinImages()-ish crashes with too low stack on STWUX instruction. Tried 4MB and it works, but test with 1MB ?
+
+
+====
+
+
+IT ACTUALLY SEEMS TO BE void IN_Frame( void ) which seems to hang waiting for input! When I keep clicking on Quit on the shell, the fan moves. This includes - probably - the reason why I need to press X on the shell conole wiondow in Amiga to even get the iwndow to popup.
+
+Hmm, now my findings turn toward: CL_Frame( msec ) - check that out!
+
+
+===
+
+dlopen() - we currently DO NOT CLOSE IT!
+
+====
+
+November 2024: Trying GCC6 to avoid the issue with native threading dynamic load

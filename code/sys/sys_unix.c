@@ -33,12 +33,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
+#if ! ( defined ( __amigaos4__ ) && defined ( __NEWLIB ) )
 #include <sys/mman.h>
+#endif
 #include <sys/time.h>
 #include <pwd.h>
 #include <libgen.h>
 #include <fcntl.h>
+#if ! ( defined ( __amigaos4__ ) && defined ( __NEWLIB ) )
 #include <fenv.h>
+#endif
 #include <sys/wait.h>
 #include <time.h>
 
@@ -63,12 +67,18 @@ Sys_DefaultHomePath
 */
 char *Sys_DefaultHomePath(void)
 {
+#ifdef __amigaos4__
+  char *ret = getcwd(homePath,MAX_OSPATH);
+  fprintf(stderr,"HomeDir: %s\n", ret);
+  return ret;
+#else
 	char *p;
-
 	if( !*homePath && com_homepath != NULL )
 	{
+
 		if( ( p = getenv( "HOME" ) ) != NULL )
 		{
+
 			Com_sprintf(homePath, sizeof(homePath), "%s%c", p, PATH_SEP);
 #ifdef __APPLE__
 			Q_strcat(homePath, sizeof(homePath),
@@ -88,6 +98,7 @@ char *Sys_DefaultHomePath(void)
 	}
 
 	return homePath;
+#endif
 }
 
 /*
@@ -281,6 +292,7 @@ Sys_Mkfifo
 */
 FILE *Sys_Mkfifo( const char *ospath )
 {
+#ifndef __amigaos4__
 	FILE	*fifo;
 	int	result;
 	int	fn;
@@ -302,6 +314,9 @@ FILE *Sys_Mkfifo( const char *ospath )
 	}
 
 	return fifo;
+#else
+	return NULL; /* at least, not on my old adtools_be version of clib4 (clib2 EXP) */
+#endif
 }
 
 /*
@@ -551,15 +566,22 @@ void Sys_Sleep( int msec )
 	}
 	else
 	{
-		struct timespec req;
-
 		// With nothing to select() on, we can't wait indefinitely
 		if( msec < 0 )
 			msec = 10;
 
-		req.tv_sec = msec/1000;
-		req.tv_nsec = (msec%1000)*1000000;
-		nanosleep(&req, NULL);
+#if defined __amigaos4__ && defined __NEWLIB
+		/* RJD: let's hope there is no overflow! */
+		(void)usleep ((unsigned int)(msec*1000));
+#else
+		{
+		  struct timespec req;
+
+		  req.tv_sec = msec/1000;
+		  req.tv_nsec = (msec%1000)*1000000;
+		  nanosleep(&req, NULL);
+		}
+#endif
 	}
 }
 
@@ -578,6 +600,8 @@ void Sys_ErrorDialog( const char *error )
 	const char *homepath = Cvar_VariableString( "fs_homepath" );
 	const char *gamedir = Cvar_VariableString( "fs_game" );
 	const char *fileName = "crashlog.txt";
+
+
 	char *dirpath = FS_BuildOSPath( homepath, gamedir, "");
 	char *ospath = FS_BuildOSPath( homepath, gamedir, fileName );
 
@@ -600,6 +624,7 @@ void Sys_ErrorDialog( const char *error )
 		Com_Printf("ERROR: couldn't create path '%s' for crash log.\n", dirpath);
 		return;
 	}
+
 
 	// We might be crashing because we maxed out the Quake MAX_FILE_HANDLES,
 	// which will come through here, so we don't want to recurse forever by
@@ -666,6 +691,7 @@ Sys_Exec
 */
 static int Sys_Exec( void )
 {
+#ifndef __amigaos4__
 	pid_t pid = fork( );
 
 	if( pid < 0 )
@@ -690,6 +716,9 @@ static int Sys_Exec( void )
 
 		return -1;
 	}
+#else
+	return -1; /* should never get called anyway. return anything! */
+#endif
 }
 
 /*
@@ -806,6 +835,7 @@ dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *t
 	else if( !Q_stricmp( session, "kde" ) )
 		preferredCommandType = KDIALOG;
 
+#ifndef __amigaos4__
 	for( i = NONE + 1; i < NUM_DIALOG_PROGRAMS; i++ )
 	{
 		if( preferredCommandType != NONE && preferredCommandType != i )
@@ -838,6 +868,7 @@ dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *t
 			}
 		}
 	}
+#endif
 
 	Com_DPrintf( S_COLOR_YELLOW "WARNING: failed to show a dialog\n" );
 	return DR_OK;
@@ -870,8 +901,12 @@ void Sys_GLimpInit( void )
 
 void Sys_SetFloatEnv(void)
 {
+#if ! ( defined ( __amigaos4__ ) && defined ( __NEWLIB ) )
 	// rounding toward nearest
 	fesetround(FE_TONEAREST);
+#else
+#	warning "Currnently: no rounding to nearest for NEWLIB"
+#endif
 }
 
 /*
@@ -921,7 +956,11 @@ void Sys_SetEnv(const char *name, const char *value)
 	if(value && *value)
 		setenv(name, value, 1);
 	else
+#if ! ( defined ( __amigaos4__ ) && defined ( __NEWLIB ) )
 		unsetenv(name);
+#else
+		;
+#endif
 }
 
 /*

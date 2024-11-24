@@ -21,6 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 // cl_main.c  -- client main loop
 
+#ifdef __amigaos4__
+#define _GNU_SOURCE
+#include <stdlib.h> /* for putenv, needs to go right at the top due to subsequent nested include */
+#undef _GNU_SOURCE
+#endif
+
 #include "client.h"
 #include "../server/server.h"
 #include "cl_ui.h"
@@ -36,7 +42,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../gamespy/gcdkey/gcdkeyc.h"
 
 #include <climits>
-
 cvar_t	*cl_nodelta;
 cvar_t	*cl_debugMove;
 
@@ -1984,7 +1989,7 @@ wombat: sending conect here: an example connect string from MOHAA looks like thi
 		port = Cvar_VariableValue ("net_qport");
 
 		Q_strncpyz( info, Cvar_InfoString( CVAR_USERINFO ), sizeof( info ) );
-		
+
 #ifdef LEGACY_PROTOCOL
 		if(com_legacyprotocol->integer == com_protocol->integer)
 			clc.compat = qtrue;
@@ -2114,7 +2119,7 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 	int				numservers;
 	byte*			buffptr;
 	byte*			buffend;
-	
+
 	Com_Printf("CL_ServersResponsePacket from %s\n", NET_AdrToStringwPort(*from));
 
 	if (cls.numglobalservers == -1) {
@@ -2133,7 +2138,7 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 	{
 		if(*buffptr == '\\' || (extended && *buffptr == '/'))
 			break;
-		
+
 		buffptr++;
 	} while (buffptr < buffend);
 
@@ -2159,17 +2164,17 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 
 			if (buffend - buffptr < sizeof(addresses[numservers].ip6) + sizeof(addresses[numservers].port) + 1)
 				break;
-			
+
 			for(i = 0; i < sizeof(addresses[numservers].ip6); i++)
 				addresses[numservers].ip6[i] = *buffptr++;
-			
+
 			addresses[numservers].type = NA_IP6;
 			addresses[numservers].scope_id = from->scope_id;
 		}
 		else
 			// syntax error!
 			break;
-			
+
 		// parse out port
 		addresses[numservers].port = (*buffptr++) << 8;
 		addresses[numservers].port += *buffptr++;
@@ -2178,7 +2183,7 @@ void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean extend
 		// syntax check
 		if (*buffptr != '\\' && *buffptr != '/')
 			break;
-	
+
 		numservers++;
 		if (numservers >= MAX_SERVERSPERPACKET)
 			break;
@@ -3039,7 +3044,7 @@ void CL_InitRef( void ) {
 #ifdef USE_RENDERER_DLL
 	// su44: load renderer dll
 	cl_renderer = Cvar_Get("cl_renderer", "glom", CVAR_ARCHIVE);
-	Q_snprintf(dllName, sizeof(dllName), "renderer_%s" ARCH_STRING DLL_EXT, cl_renderer->string); 
+	Q_snprintf(dllName, sizeof(dllName), "renderer_%s" ARCH_STRING DLL_EXT, cl_renderer->string);
 	Com_Printf("Loading \"%s\"...", dllName);
 	if((rendererLib = Sys_LoadLibrary(dllName)) == 0) {
 #ifdef _WIN32
@@ -3523,7 +3528,7 @@ void CL_Shutdown(const char* finalmsg, qboolean disconnect, qboolean quit) {
 	// check whether the client is running at all.
 	if(!(com_cl_running && com_cl_running->integer))
 		return;
-	
+
 	Com_Printf( "----- Client Shutdown (%s) -----\n", finalmsg );
 
 	if ( recursive ) {
@@ -4106,11 +4111,11 @@ void CL_GlobalServers_f( void ) {
 	netadr_t	to;
 	int			count, i, masterNum;
 	char		command[1024], *masteraddress;
-	
+
 	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > MAX_MASTER_SERVERS)
 	{
 		Com_Printf("usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS);
-		return;	
+		return;
 	}
 
 	// request from all master servers
@@ -4138,22 +4143,22 @@ void CL_GlobalServers_f( void ) {
 
 	sprintf(command, "sv_master%d", masterNum);
 	masteraddress = Cvar_VariableString(command);
-	
+
 	if(!*masteraddress)
 	{
 		Com_Printf( "CL_GlobalServers_f: Error: No master server address given.\n");
-		return;	
+		return;
 	}
 
 	// reset the list, waiting for response
 	// -1 is used to distinguish a "no response"
 
 	i = NET_StringToAdr(masteraddress, &to, NA_UNSPEC);
-	
+
 	if(!i)
 	{
 		Com_Printf( "CL_GlobalServers_f: Error: could not resolve address of master %s\n", masteraddress);
-		return;	
+		return;
 	}
 	else if(i == 2)
 		to.port = BigShort(PORT_MASTER);
@@ -4167,7 +4172,7 @@ void CL_GlobalServers_f( void ) {
 	if (to.type == NA_IP6 || to.type == NA_MULTICAST6)
 	{
 		int v4enabled = Cvar_VariableIntegerValue("net_enabled") & NET_ENABLEV4;
-		
+
 		if(v4enabled)
 		{
 			Com_sprintf(command, sizeof(command), "getserversExt %s %s",
@@ -4316,7 +4321,7 @@ CL_GetFreePing
 ping_t* CL_GetFreePing( void )
 {
 	ping_t*	pingptr;
-	ping_t*	best;	
+	ping_t*	best;
 	int		oldest;
 	int		i;
 	int		time;
@@ -4381,9 +4386,9 @@ void CL_Ping_f( void ) {
 
 	if ( argc != 2 && argc != 3 ) {
 		Com_Printf( "usage: ping [-4|-6] server\n");
-		return;	
+		return;
 	}
-	
+
 	if(argc == 2)
 		server = Cmd_Argv(1);
 	else
@@ -4394,7 +4399,7 @@ void CL_Ping_f( void ) {
 			family = NA_IP6;
 		else
 			Com_Printf( "warning: only -4 or -6 as address type understood.\n");
-		
+
 		server = Cmd_Argv(2);
 	}
 
@@ -4411,7 +4416,7 @@ void CL_Ping_f( void ) {
 	pingptr->time  = 0;
 
 	CL_SetServerInfoByAddress(pingptr->adr, NULL, 0);
-		
+
 	NET_OutOfBandPrint( NS_CLIENT, to, "\x02getinfo xxx" );
 }
 
@@ -4599,7 +4604,7 @@ qboolean CL_UpdateVisiblePings_f(int source) {
 				}
 			}
 		}
-	} 
+	}
 
 	if (slots) {
 		status = qtrue;
@@ -4643,11 +4648,11 @@ void CL_ServerStatus_f(void) {
 
 		toptr = &clc.serverAddress;
 	}
-	
+
 	if(!toptr)
 	{
 		Com_Memset( &to, 0, sizeof(netadr_t) );
-	
+
 		if(argc == 2)
 			server = Cmd_Argv(1);
 		else
@@ -4658,7 +4663,7 @@ void CL_ServerStatus_f(void) {
 				family = NA_IP6;
 			else
 				Com_Printf( "warning: only -4 or -6 as address type understood.\n");
-		
+
 			server = Cmd_Argv(2);
 		}
 

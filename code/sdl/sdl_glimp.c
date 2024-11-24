@@ -619,7 +619,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 			glConfig.stereoEnabled = qfalse;
 			SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 		}
-		
+
 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
 #if 0 // if multisampling is enabled on X11, this causes create window to fail.
@@ -841,7 +841,7 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 		r_fullscreen->modified = qfalse;
 		fullscreen = qfalse;
 	}
-	
+
 	err = GLimp_SetMode(mode, fullscreen, noborder, gl3Core);
 
 	switch ( err )
@@ -1068,6 +1068,10 @@ void GLimp_Init( qboolean fixedFunction )
 		ri.Cvar_Set( "r_centerWindow", "0" );
 		ri.Cvar_Set( "com_abnormalExit", "0" );
 	}
+
+#if 1
+	r_fullscreen->integer = 0;
+#endif
 
 	ri.Sys_GLimpInit( );
 

@@ -189,7 +189,7 @@ COM_SkipPath
 const char *COM_SkipPath (const char *pathname)
 {
 	const char	*last;
-	
+
 	last = pathname;
 	while (*pathname)
 	{
@@ -407,9 +407,9 @@ int COM_Compress( char *data_p ) {
 				}
 			// skip /* */ comments
 			} else if ( c == '/' && in[1] == '*' ) {
-				while ( *in && ( *in != '*' || in[1] != '/' ) ) 
+				while ( *in && ( *in != '*' || in[1] != '/' ) )
 					in++;
-				if ( *in ) 
+				if ( *in )
 					in += 2;
                         // record when we hit a newline
                         } else if ( c == '\n' || c == '\r' ) {
@@ -430,7 +430,7 @@ int COM_Compress( char *data_p ) {
                                 *out++ = ' ';
                                 whitespace = qfalse;
                             }
-                            
+
                             // copy quoted strings unmolested
                             if (c == '"') {
                                     *out++ = c;
@@ -627,14 +627,14 @@ char *COM_ParseExtIgnoreQuotes( char **data_p, qboolean allowLineBreaks )
 			}
 		}
 		// skip /* */ comments
-		else if ( c=='/' && data[1] == '*' ) 
+		else if ( c=='/' && data[1] == '*' )
 		{
 			data += 2;
-			while ( *data && ( *data != '*' || data[1] != '/' ) ) 
+			while ( *data && ( *data != '*' || data[1] != '/' ) )
 			{
 				data++;
 			}
-			if ( *data ) 
+			if ( *data )
 			{
 				data += 2;
 			}
@@ -1190,7 +1190,7 @@ char* Q_strrchr( const char* string, int c )
 /*
 =============
 Q_strncpyz
- 
+
 Safe strncpy that ensures a trailing zero
 =============
 */
@@ -1214,7 +1214,7 @@ void Q_strncpyz( char *dest, const char *src, size_t destsize ) {
     strncpy( dest, src, destsize - 1 );
     dest[ destsize - 1 ] = 0;
 }
-                 
+
 int Q_stricmpn( const char *s1, const char *s2, size_t n ) {
 	int		c1, c2;
 
@@ -1228,7 +1228,7 @@ int Q_stricmpn( const char *s1, const char *s2, size_t n ) {
           return 1;
 
 
-	
+
 	do {
 		c1 = *s1++;
 		c2 = *s2++;
@@ -1236,7 +1236,7 @@ int Q_stricmpn( const char *s1, const char *s2, size_t n ) {
 		if (!n--) {
 			return 0;		// strings are equal until end point
 		}
-		
+
 		if (c1 != c2) {
 			if (c1 >= 'a' && c1 <= 'z') {
 				c1 -= ('a' - 'A');
@@ -1249,13 +1249,13 @@ int Q_stricmpn( const char *s1, const char *s2, size_t n ) {
 			}
 		}
 	} while (c1);
-	
+
 	return 0;		// strings are equal
 }
 
 int Q_strncmp( const char *s1, const char *s2, size_t n ) {
 	int		c1, c2;
-	
+
 	do {
 		c1 = *s1++;
 		c2 = *s2++;
@@ -1263,12 +1263,12 @@ int Q_strncmp( const char *s1, const char *s2, size_t n ) {
 		if (!n--) {
 			return 0;		// strings are equal until end point
 		}
-		
+
 		if (c1 != c2) {
 			return c1 < c2 ? -1 : 1;
 		}
 	} while (c1);
-	
+
 	return 0;		// strings are equal
 }
 
@@ -1418,7 +1418,7 @@ char *Q_CleanStr( char *string ) {
 	while ((c = *s) != 0 ) {
 		if ( Q_IsColorString( s ) ) {
 			s++;
-		}		
+		}
 		else if ( c >= 0x20 && c <= 0x7E ) {
 			*d++ = c;
 		}
@@ -1517,8 +1517,12 @@ short ShortSwap(short l)
 {
 	byte b1, b2;
 
+	/*	fprintf(stderr,",here, here\n");*/
+
 	b1 = l & 255;
 	b2 = (l >> 8) & 255;
+
+
 
 	return (b1 << 8) + b2;
 }
@@ -1728,7 +1732,7 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 											// work without stomping on each other
 	static	int	valueindex = 0;
 	char	*o;
-	
+
 	if ( !s || !key ) {
 		return "";
 	}
@@ -1971,7 +1975,7 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 			return;
 		}
 	}
-	
+
 	Info_RemoveKey (s, key);
 	if (!value || !strlen(value))
 		return;

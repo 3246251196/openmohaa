@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(openmohaa)
 
+if(AMIGAOS4)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -gstabs -Og -D__linux__ -D_LINUX -D_GNU_SOURCE")
+  set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_STANDARD_LIBRARIES -lpthread)
+  set(CMAKE_C_STANDARD_LIBRARIES -lpthread)
+endif()
 include(TargetArch.cmake)
 
 target_architecture(TARGET_ARCH)
@@ -90,6 +96,10 @@ target_compile_features(omohaaded PUBLIC c_variadic_macros)
 target_link_libraries(omohaaded PRIVATE omohserver)
 target_link_libraries(omohaaded PRIVATE syslib)
 target_link_libraries(omohaaded PRIVATE qcommon qcommon_standalone)
+if(${C_LIB} STREQUAL "newlib")
+	target_link_libraries(omohaaded PRIVATE "-ldl")
+	target_link_libraries(omohaaded PRIVATE "-lauto")
+endif()
 
 # Gamespy dependency
 target_include_directories(omohaaded PUBLIC "code/qcommon" "code/script" "code/gamespy" "code/server")
@@ -105,7 +115,7 @@ INSTALL(TARGETS omohaaded DESTINATION "./")
 
 if (NOT BUILD_NO_CLIENT)
 	## Client app
-	
+
 	add_subdirectory("code/client")
 	add_subdirectory("code/renderer")
 	add_subdirectory("code/sdl")
@@ -128,6 +138,13 @@ if (NOT BUILD_NO_CLIENT)
 	set_target_properties(openmohaa PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
 	target_link_libraries(openmohaa PRIVATE jpeg8)
+
+
+if(${C_LIB} STREQUAL "newlib")
+	target_link_libraries(openmohaa PRIVATE "-use-dynld")
+	target_link_libraries(openmohaa PRIVATE "-ldl")
+	target_link_libraries(openmohaa PRIVATE "-Wl,--export-dynamic")
+endif()
 
 	if (MSVC)
 		target_link_options(openmohaa PRIVATE "/MANIFEST:NO")
