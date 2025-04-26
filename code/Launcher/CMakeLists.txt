@@ -4,7 +4,10 @@ project(Launcher)
 
 set(LAUNCHER_SOURCES "${CMAKE_SOURCE_DIR}/code/Launcher/launch_main.cpp")
 
-if (WIN32)
+if (AMIGAOS4)
+    set(LAUNCHER_SOURCES ${LAUNCHER_SOURCES}
+    "${CMAKE_SOURCE_DIR}/code/Launcher/launch_amigaos4.cpp")
+elseif (WIN32)
     set(LAUNCHER_SOURCES ${LAUNCHER_SOURCES}
     "${CMAKE_SOURCE_DIR}/code/Launcher/launch_win32.cpp"
     "${CMAKE_SOURCE_DIR}/code/sys/win_resource.rc")

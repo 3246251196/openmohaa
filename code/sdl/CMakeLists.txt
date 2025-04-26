@@ -73,12 +73,25 @@ if(WIN32)
 
 elseif(UNIX)
 	find_package(SDL2 REQUIRED)
-	
+
 	if (SDL2_FOUND)
 		string(STRIP "${SDL2_LIBRARIES}" SDL2_LIBRARIES)
 		target_include_directories(sdllib INTERFACE ${SDL2_INCLUDE_DIRS})
 		target_link_libraries(sdllib INTERFACE ${SDL2_LIBRARIES})
 	endif()
+elseif(AMIGAOS4)
+# Do not need to worry about includes
+
+
+# Until the later versions fix the mouse issue!
+# Remove:
+####target_link_libraries(omohsdl_client PRIVATE SDL2_GL4ES)
+# Replace with:
+target_link_libraries(omohsdl_client PRIVATE "${CMAKE_SOURCE_DIR}/SDL2_2.24.0_withGL4ES/newlib/lib/libSDL2_GL4ES.a")
+
+target_link_libraries(omohsdl_client PRIVATE GL4ES)
+target_link_libraries(omohsdl_gl PRIVATE GL4ES)
+
 endif()
 
 target_link_libraries(omohsdl_client PUBLIC sdllib)

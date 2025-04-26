@@ -1374,10 +1374,18 @@ void ScriptCompiler::EmitWhileJump(sval_t while_expr, sval_t while_stmt, sval_t 
     bCanBreak = old_bCanBreak;
 }
 
+#ifdef __amigaos4__
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+#endif
 bool ScriptCompiler::EvalPrevValue(ScriptVariable& var)
 {
     int   intValue   = 0;
+#ifdef __amigaos4__
+    float floatValue __attribute__ ((aligned (4))) = 0.0f;
+#else
     float floatValue = 0.0f;
+#endif
 
     switch (PrevOpcode()) {
     case OP_STORE_INT0:
@@ -1401,8 +1409,14 @@ bool ScriptCompiler::EvalPrevValue(ScriptVariable& var)
         break;
 
     case OP_STORE_FLOAT:
-        floatValue = GetOpcodeValue<float>(sizeof(float), sizeof(float));
-        var.setFloatValue(floatValue);
+    {
+#ifndef __amigaos4__
+	    floatValue = GetOpcodeValue<float>(sizeof(float), sizeof(float));
+#else
+	    floatValue = AmigaOS4_Float_GetOpcodeValue(sizeof(float), sizeof(float));
+#endif
+	    var.setFloatValue(floatValue);
+    }
         return true;
 
     default:
@@ -1413,6 +1427,9 @@ bool ScriptCompiler::EvalPrevValue(ScriptVariable& var)
 
     return true;
 }
+#ifdef __amigaos4__
+#pragma GCC pop_options
+#endif
 
 void ScriptCompiler::ProcessBreakJumpLocations(int iStartBreakJumpLocCount)
 {
@@ -1660,6 +1677,71 @@ Value ScriptCompiler::GetOpcodeValue(size_t offset, size_t size) const
     Com_Memcpy(&val, code_pos - offset, size);
     return val;
 }
+
+#ifdef __amigaos4__
+/* Deal with alignment */
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+void ScriptCompiler::AmigaOS4_Float_SetOpcodeValue(const float& value)
+{
+	if (((unsigned)code_pos & (unsigned)~0xFFFFFFFFC))
+	{
+		assert( "AmigaOS4 stsf alignment unimplemented" && 0 );
+	}
+	Com_Memcpy(code_pos, &value, sizeof(value));
+}
+#pragma pop_options
+
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+float ScriptCompiler::AmigaOS4_Float_GetOpcodeValue(size_t size) const
+{
+	float val __attribute__ ((aligned (4))) = 0.0f;
+	void *l = code_pos;
+
+	/* Many targets cannot handle mis-aligned floats. We have to
+	 * check the pointer value to see if it is on 4 byte bounday and
+	 * if not, construct a float that _is_ on a 4 byte boundary */
+	assert(4 == sizeof(void*));
+	assert(4 == sizeof(float));
+	assert(4 == sizeof(unsigned));
+	unsigned char aligned_l[4]  __attribute__ ((aligned (4)));
+	{
+		if (((unsigned)l & (unsigned)~0xFFFFFFFFC))
+		{
+			l = memcpy(aligned_l,l,4);
+		}
+	}
+	Com_Memcpy(&val, l, size);
+	return val;
+}
+#pragma pop_options
+
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+float ScriptCompiler::AmigaOS4_Float_GetOpcodeValue(size_t offset, size_t size) const
+{
+	float val __attribute__ ((aligned (4))) = 0.0F;
+	void *l = code_pos - offset;
+
+	/* Many targets cannot handle mis-aligned floats. We have to
+	 * check the pointer value to see if it is on 4 byte bounday and
+	 * if not, construct a float that _is_ on a 4 byte boundary */
+	assert(4 == sizeof(void*));
+	assert(4 == sizeof(float));
+	assert(4 == sizeof(unsigned));
+	unsigned char aligned_l[4]  __attribute__ ((aligned (4)));
+	{
+		if (((unsigned)l & (unsigned)~0xFFFFFFFFC))
+		{
+			l = memcpy(aligned_l,l,4);
+		}
+	}
+	Com_Memcpy(&val, l, size);
+	return val;
+}
+#pragma pop_options
+#endif /* __amigaos4__ */
 
 void CompileAssemble(const char *filename, const char *outputfile)
 {

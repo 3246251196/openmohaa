@@ -28,7 +28,9 @@
 #ifdef __sun
 #define _POSIX_C_SOURCE 199309L
 #endif
+#if ! ( defined ( __amigaos4__ ) && defined ( __NEWLIB ) )
 #include <sys/mman.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -78,8 +80,16 @@ static int32_t GetTickCount(void)
 }
 #endif
 
+#ifdef __amigaos4__
+#include <assert.h>
+#endif
 int mumble_link(const char* name)
 {
+#ifdef __amigaos4__
+  /* apparently, cscope says that nothing calls this function !? */
+  assert( 0 );
+  return -1;
+#else
 #ifdef WIN32
 	if(lm)
 		return 0;
@@ -118,6 +128,7 @@ int mumble_link(const char* name)
 	mbstowcs(lm->name, name, sizeof(lm->name) / sizeof(wchar_t));
 
 	return 0;
+#endif /* __amigaos4__ */
 }
 
 void mumble_update_coordinates(float fPosition[3], float fFront[3], float fTop[3])
@@ -168,6 +179,7 @@ void mumble_set_description(const char* description)
 	mbstowcs(lm->description, description, len);
 }
 
+#if ! ( defined ( __amigaos4__ ) && defined ( __NEWLIB ) )
 void mumble_unlink()
 {
 	if(!lm)
@@ -181,6 +193,7 @@ void mumble_unlink()
 #endif
 	lm = NULL;
 }
+#endif
 
 int mumble_islinked(void)
 {

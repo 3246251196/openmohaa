@@ -421,6 +421,8 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 	if ( r_allowResize->integer )
 		flags |= SDL_WINDOW_RESIZABLE;
 
+/* Capture the damn mouse! */
+
 #ifdef USE_ICON
 	icon = SDL_CreateRGBSurfaceFrom(
 			(void *)CLIENT_WINDOW_ICON.pixel_data,
@@ -684,7 +686,7 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 			glConfig.stereoEnabled = qfalse;
 			SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 		}
-		
+
 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
 #if 0 // if multisampling is enabled on X11, this causes create window to fail.
@@ -827,6 +829,23 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 	return RSERR_OK;
 }
 
+#ifdef __amigaos4__
+void rjd_exit_function( void )
+{
+	if(SDL_glContext)
+	{
+		SDL_GL_DeleteContext(SDL_glContext);
+		SDL_glContext = NULL;
+	}
+
+	if(SDL_window)
+	{
+		SDL_DestroyWindow(SDL_window);
+		SDL_window = NULL;
+	}
+}
+#endif
+
 /*
 ===============
 GLimp_StartDriverAndSetMode
@@ -858,7 +877,7 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 		r_fullscreen->modified = qfalse;
 		fullscreen = qfalse;
 	}
-	
+
 	err = GLimp_SetMode(mode, fullscreen, noborder, gl3Core);
 
 	switch ( err )

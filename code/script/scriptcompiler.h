@@ -174,6 +174,14 @@ private:
 
     template<typename Value>
     Value GetOpcodeValue(size_t offset, size_t size) const;
+
+#ifdef __amigaos4__
+	float AmigaOS4_Float_GetOpcodeValue(size_t size) const;
+	float AmigaOS4_Float_GetOpcodeValue(size_t offset, size_t size) const;
+	void AmigaOS4_Float_SetOpcodeValue(const float& value);
+#endif
+
+
 };
 
 extern ScriptCompiler Compiler;

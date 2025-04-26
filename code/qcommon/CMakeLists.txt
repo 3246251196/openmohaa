@@ -93,6 +93,23 @@ if(DEBUG_DROP_ASSERT)
     target_compile_definitions(qcommon_standalone INTERFACE COM_ERROR_DROP_ASSERT)
 endif()
 
+if(AMIGAOS4)
+  # We should also include the work-around getaddrinfo! See: svn log -c 747
+
+  # NOTE: We add the include directory even though we do not explicitly
+  # include it! The only thing we need is the reimplementation of
+  # getaddrinfo()
+  target_include_directories(qcommon_standalone INTERFACE "${CMAKE_SOURCE_DIR}/net_gai2")
+  # But, we _do_ need this, since it provides said implementation. We
+  # #define getaddrinfo to getaddrinfo_gai
+  target_link_libraries(qcommon_standalone INTERFACE "${CMAKE_SOURCE_DIR}/net_gai2/libgai.a")
+
+  # 5th April 2025. It looks like enable optimization -O2 results in
+  # time out connections when connecting to servers. For now, disable
+  # optimization for qcommon_standalone. This is done in the source file.
+endif()
+
+
 target_compile_features(qcommon_standalone INTERFACE cxx_nullptr)
 target_compile_features(qcommon_standalone INTERFACE c_variadic_macros)
 target_link_libraries(qcommon_standalone INTERFACE omohtiki omohskeletor)

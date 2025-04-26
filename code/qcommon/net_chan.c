@@ -325,7 +325,7 @@ void Netchan_TransmitNextFragment( netchan_t *chan, netprofpacketlist_t *packetl
 	// send the qport if we are a client
 	if ( chan->sock == NS_CLIENT ) {
 		MSG_WriteShort( &send, qport->integer );
-    }
+	}
 
 #ifdef LEGACY_PROTOCOL
     if (!chan->compat)

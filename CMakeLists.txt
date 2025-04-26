@@ -1,6 +1,23 @@
 cmake_minimum_required(VERSION 3.12)
 project(openmohaa)
 
+if(AMIGAOS4)
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -gstabs -Og -D__linux__ -D_LINUX -D_GNU_SOURCE -athread=native -use-dynld")
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -gstabs -Ofast -D__linux__ -D_LINUX -D_GNU_SOURCE -athread=native -use-dynld")
+
+  #X5000:
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Ofast -mcpu=e5500 -mno-altivec -mno-powerpc64 -D__linux__ -D_LINUX -D_GNU_SOURCE -athread=native -use-dynld")
+
+  set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SOURCE_DIR}/SDL2_2.24.0_withGL4ES/newlib/include/SDL2/")
+  set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
+
+  set(CMAKE_CXX_STANDARD_LIBRARIES -lpthread)
+  set(CMAKE_C_STANDARD_LIBRARIES -lpthread)
+endif()
+
 include(misc/cmake/TargetArch.cmake)
 
 target_architecture(TARGET_ARCH)
@@ -20,6 +37,7 @@ option(TARGET_LOCAL_SYSTEM "Indicate that the project will be compiled and insta
 if(TARGET_GAME_TYPE)
 	message(SEND_ERROR "TARGET_GAME_TYPE is now unsupported, it is now done at runtime.")
 endif()
+
 
 set(TARGET_BASE_GAME "./")
 set(CMAKE_DEBUG_POSTFIX "-dbg")
@@ -168,6 +186,10 @@ target_compile_features(omohaaded PUBLIC c_variadic_macros)
 target_link_libraries(omohaaded PRIVATE omohserver)
 target_link_libraries(omohaaded PRIVATE syslib)
 target_link_libraries(omohaaded PRIVATE qcommon qcommon_standalone)
+if(${C_LIB} STREQUAL "newlib")
+	target_link_libraries(omohaaded PRIVATE "-ldl")
+	target_link_libraries(omohaaded PRIVATE "-lauto")
+endif()
 
 # Add the gamespy dependency
 target_include_directories(omohaaded PUBLIC "code/qcommon" "code/script" "code/gamespy" "code/server")
@@ -185,7 +207,11 @@ if (NOT BUILD_NO_CLIENT)
 	##
 	## Client app
 	##
+if(AMIGAOS4)
+	option(NO_MODERN_DMA "Use older sound-system" TRUE)
+else()
 	option(NO_MODERN_DMA "Use older sound-system" FALSE)
+endif()
 
 	add_subdirectory("code/client")
 	add_subdirectory("code/renderercommon")

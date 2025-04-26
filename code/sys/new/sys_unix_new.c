@@ -24,8 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <signal.h>
 #include <unistd.h>
+#ifndef __amigaos4__
 #include <execinfo.h>
-
+#endif
 /*
 ==================
 Sys_PlatformInit_New
@@ -54,6 +55,7 @@ void Sys_PrintBackTrace() {
     size_t backtrace_size;
     size_t i;
 
+#ifndef __amigaos4__
     // Fetch the backtrace starting from the current function
     backtrace_size = backtrace(backtrace_arr, ARRAY_LEN(backtrace_arr));
     backtrace_symbols_arr = backtrace_symbols(backtrace_arr, ARRAY_LEN(backtrace_arr));
@@ -61,6 +63,9 @@ void Sys_PrintBackTrace() {
     for (i = 0; i < backtrace_size; i++) {
         fprintf(stderr, "=> %s\n", backtrace_symbols_arr[i]);
     }
+#else
+    printf("----AMIGAOS4: Backtrace unimplemented\n");
+#endif
 }
 
 /*

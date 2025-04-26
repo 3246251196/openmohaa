@@ -1415,6 +1415,13 @@ void ScriptVariable::setFloatValue(float newvalue)
 {
     ClearInternal();
     type              = VARIABLE_FLOAT;
+#ifdef __amigaos4__
+    if (((unsigned)&newvalue & (unsigned)~0xFFFFFFFFC) ||
+	((unsigned)&m_data.floatValue & (unsigned)~0xFFFFFFFFC))
+    {
+	    assert( "AmigaOS4 stsf alignment unimplemented" && 0 );
+    }
+#endif
     m_data.floatValue = newvalue;
 }
 
